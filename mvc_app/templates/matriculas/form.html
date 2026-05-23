@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Nueva Matrícula — UCJC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-card-plus"></i> Nueva matrícula (proceso transaccional)</h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info small mb-3">
+          <i class="bi bi-info-circle"></i>
+          El sistema verifica automáticamente: saldo suficiente, plazas disponibles y matrícula duplicada.
+          Si todo es correcto, descuenta el precio del saldo del alumno en una sola transacción atómica.
+        </div>
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Alumno *</label>
+            <select name="alumno_id" class="form-select" required>
+              <option value="">— Seleccionar alumno —</option>
+              {% for a in alumnos %}
+              <option value="{{ a.id }}">
+                {{ a.nombre }} — Saldo: {{ "%.2f €" | format(a.saldo) if a.saldo is not none else '0.00 €' }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Asignatura *</label>
+            <select name="asignatura_id" class="form-select" required>
+              <option value="">— Seleccionar asignatura —</option>
+              {% for asig in asignaturas %}
+              {% set libres = asig.limite_alumnos - asig.inscritos %}
+              <option value="{{ asig.id }}" {{ 'disabled' if libres <= 0 }}>
+                {{ asig.codigo }} — {{ asig.nombre }}
+                | Precio: {{ "%.2f €" | format(asig.precio) if asig.precio is not none else '—' }}
+                | Plazas: {{ asig.inscritos }}/{{ asig.limite_alumnos }}
+                {{ '(COMPLETA)' if libres <= 0 else '' }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-check-circle"></i> Matricular
+            </button>
+            <a href="{{ url_for('matriculas.list_matriculas') }}" class="btn btn-outline-secondary">
+              Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

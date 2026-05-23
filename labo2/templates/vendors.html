@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Vendors — MVC labo2{% endblock %}
+{% block content %}
+  <h1>Vendors</h1>
+  <ul class="list">
+    {% for vendor in vendors %}
+    <li>{{ vendor.id }} — {{ vendor.name }}</li>
+    {% else %}
+    <li class="empty">No hay vendors.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

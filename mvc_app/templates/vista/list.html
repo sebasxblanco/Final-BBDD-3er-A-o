@@ -1,0 +1,91 @@
+{% from 'macros.html' import pagination %}
+{% extends 'base.html' %}
+{% block title %}Vista Académica — UCJC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-table"></i> Vista Académica</h2>
+  <span class="badge bg-secondary fs-6">Vista PostgreSQL</span>
+</div>
+
+<div class="alert alert-light border small mb-3">
+  <i class="bi bi-info-circle"></i>
+  Esta página consulta directamente la <strong>vista</strong>
+  <code>vista_alumno_profesor_asignatura</code> definida en PostgreSQL.
+  Muestra la relación completa alumno ↔ profesor ↔ asignatura.
+</div>
+
+<div class="card mb-3 border-0 bg-light">
+  <div class="card-body py-2">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <input type="text" name="q" class="form-control form-control-sm"
+               placeholder="Alumno, profesor o asignatura…" value="{{ q }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-0">Matrícula desde</label>
+        <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ fecha_desde }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-0">hasta</label>
+        <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ fecha_hasta }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small mb-0">Cal. mín</label>
+        <input type="number" name="cal_min" class="form-control form-control-sm"
+               step="0.01" min="0" max="10" value="{{ cal_min }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small mb-0">máx</label>
+        <input type="number" name="cal_max" class="form-control form-control-sm"
+               step="0.01" min="0" max="10" value="{{ cal_max }}">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filtrar</button>
+        <a href="{{ url_for('vista.list_vista') }}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-primary">
+        <tr>
+          <th>Nombre Alumno</th>
+          <th>Nombre Profesor</th>
+          <th>Nombre Asignatura</th>
+          <th>Departamento</th>
+          <th class="text-center">Créditos</th>
+          <th>Fecha Matrícula</th>
+          <th class="text-center">Calificación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.nombre_alumno }}</strong><br>
+            <small class="text-muted"><code>{{ r.numero_expediente }}</code></small></td>
+          <td>{{ r.nombre_profesor }}</td>
+          <td><code class="small">{{ r.codigo }}</code> {{ r.nombre_asignatura }}</td>
+          <td><span class="badge bg-secondary">{{ r.departamento }}</span></td>
+          <td class="text-center">{{ r.creditos }}</td>
+          <td>{{ r.fecha_matricula }}</td>
+          <td class="text-center">
+            {% if r.calificacion is not none %}
+              <span class="badge {{ 'bg-success' if r.calificacion >= 5 else 'bg-danger' }}">
+                {{ "%.2f" | format(r.calificacion) }}
+              </span>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">Sin resultados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ pagination(page, total_pages, total) }}
+{% endblock %}

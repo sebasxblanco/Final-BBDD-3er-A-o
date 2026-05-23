@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}GIS — Localización y Rutas{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+  <div class="col">
+    <h2><i class="bi bi-geo-alt-fill"></i> Localización GIS del Campus</h2>
+    <p class="text-muted">Posiciones de alumnos (puntos) y aulas (polígonos). Selecciona un alumno y un aula para calcular la ruta.</p>
+  </div>
+</div>
+
+{% if not postgis_listo %}
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <strong>PostGIS pendiente.</strong>
+  Ejecuta el DAG <code>dag_postgis</code> en Airflow para activar los datos geoespaciales.
+</div>
+{% endif %}
+
+<!-- formulario de viaje -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-body">
+    <form method="get" action="{{ url_for('gis.viajar') }}" class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Alumno</label>
+        <select name="alumno_id" class="form-select" required>
+          <option value="">— selecciona un alumno —</option>
+          {% for al in alumnos_con_geo %}
+          <option value="{{ al.id }}" {% if al.id == alumno_id %}selected{% endif %}>
+            {{ al.nombre }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label fw-semibold">Aula</label>
+        <select name="asignatura_id" class="form-select" required>
+          <option value="">— selecciona un aula —</option>
+          {% for asig in asignaturas_con_geo %}
+          <option value="{{ asig.id }}" {% if asig.id == asignatura_id %}selected{% endif %}>
+            {{ asig.codigo }} — {{ asig.nombre }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-arrow-right-circle"></i> Viajar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if resultado %}
+<!-- resultado del viaje -->
+<div class="card mb-4 border-{{ 'success' if resultado.ya_llego else 'warning' }} shadow-sm">
+  <div class="card-header bg-{{ 'success' if resultado.ya_llego else 'warning' }} {{ 'text-white' if resultado.ya_llego else 'text-dark' }}">
+    <i class="bi bi-{{ 'check-circle-fill' if resultado.ya_llego else 'signpost-2' }}"></i>
+    {% if resultado.ya_llego %}
+      El alumno ya se encuentra dentro del aula
+    {% else %}
+      Ruta calculada
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <p class="mb-1"><strong>Alumno:</strong> {{ resultado.alumno_nombre }}</p>
+        <p class="mb-1"><strong>Destino:</strong> {{ resultado.asignatura_nombre }}
+          <span class="badge bg-secondary">{{ resultado.asignatura_codigo }}</span></p>
+      </div>
+      <div class="col-md-6">
+        <p class="mb-1"><strong>Distancia al aula:</strong>
+          <span class="fw-bold text-primary">{{ resultado.distancia_metros }} m</span></p>
+        {% if not resultado.ya_llego %}
+        <p class="mb-1"><strong>Tiempo estimado a pie:</strong>
+          ~{{ (resultado.distancia_metros | float / 83.3) | round(0) | int }} min</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- mapa leaflet -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-map"></i> Mapa del campus</span>
+    <small class="text-muted">
+      <span class="badge" style="background:#0d6efd">●</span> Alumnos &nbsp;
+      <span class="badge" style="background:#198754">■</span> Aulas &nbsp;
+      {% if resultado %}<span class="badge" style="background:#fd7e14">— —</span> Ruta{% endif %}
+    </small>
+  </div>
+  <div class="card-body p-0">
+    <div id="map" style="height:500px; border-radius:0 0 .375rem .375rem;"></div>
+  </div>
+</div>
+
+<!-- tablas resumen -->
+<div class="row">
+  <div class="col-md-5">
+    <h6 class="fw-semibold">Alumnos con geolocalización</h6>
+    <table class="table table-sm table-striped">
+      <thead><tr><th>Nombre</th></tr></thead>
+      <tbody>
+        {% for al in alumnos_con_geo %}
+        <tr><td>{{ al.nombre }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="col-md-7">
+    <h6 class="fw-semibold">Aulas con polígono</h6>
+    <table class="table table-sm table-striped">
+      <thead><tr><th>Código</th><th>Asignatura</th></tr></thead>
+      <tbody>
+        {% for asig in asignaturas_con_geo %}
+        <tr><td><code>{{ asig.codigo }}</code></td><td>{{ asig.nombre }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  var map = L.map('map').setView([40.4510, -4.0050], 16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  // marcadores de alumnos (círculos azules)
+  var alumnosGeo = {{ alumnos_geo | tojson }};
+  alumnosGeo.forEach(function (a) {
+    var gj = JSON.parse(a.geojson);
+    var lon = gj.coordinates[0], lat = gj.coordinates[1];
+    L.circleMarker([lat, lon], {
+      radius: 8, color: '#0d6efd', fillColor: '#0d6efd', fillOpacity: 0.85, weight: 2
+    }).bindPopup('<strong>' + a.nombre + '</strong><br><small class="text-muted">alumno</small>').addTo(map);
+  });
+
+  // polígonos de aulas (verde)
+  var aulasGeo = {{ aulas_geo | tojson }};
+  aulasGeo.forEach(function (a) {
+    var gj = JSON.parse(a.geojson);
+    L.geoJSON(gj, {
+      style: { color: '#198754', fillColor: '#198754', fillOpacity: 0.25, weight: 2 }
+    }).bindPopup('<strong>' + a.nombre + '</strong><br><code>' + a.codigo + '</code>').addTo(map);
+  });
+
+  {% if resultado %}
+  // ruta del viaje (línea naranja discontinua)
+  var rutaGj = JSON.parse({{ resultado.ruta_geojson | tojson }});
+  L.geoJSON(rutaGj, {
+    style: { color: '#fd7e14', weight: 3, dashArray: '10, 6' }
+  }).addTo(map);
+
+  // resaltar alumno seleccionado (círculo naranja mayor)
+  var alumnoGj = JSON.parse({{ resultado.alumno_geojson | tojson }});
+  var ac = alumnoGj.coordinates;
+  L.circleMarker([ac[1], ac[0]], {
+    radius: 12, color: '#fd7e14', fillColor: '#fd7e14', fillOpacity: 1, weight: 3
+  }).bindPopup('<strong>{{ resultado.alumno_nombre }}</strong><br>posición actual').addTo(map).openPopup();
+
+  // resaltar aula destino (polígono naranja)
+  var aulaGj = JSON.parse({{ resultado.aula_geojson | tojson }});
+  L.geoJSON(aulaGj, {
+    style: { color: '#fd7e14', fillColor: '#fd7e14', fillOpacity: 0.4, weight: 3 }
+  }).bindPopup('<strong>{{ resultado.asignatura_nombre }}</strong><br>destino').addTo(map);
+  {% endif %}
+})();
+</script>
+{% endblock %}

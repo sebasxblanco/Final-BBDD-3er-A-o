@@ -1,0 +1,101 @@
+{% from 'macros.html' import pagination %}
+{% extends 'base.html' %}
+{% block title %}Alumnos — UCJC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-people"></i> Alumnos</h2>
+  <a href="{{ url_for('alumnos.crear_alumno') }}" class="btn btn-success">
+    <i class="bi bi-plus-lg"></i> Nuevo alumno
+  </a>
+</div>
+
+<div class="card mb-3 border-0 bg-light">
+  <div class="card-body py-2">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <input type="text" name="q" class="form-control form-control-sm"
+               placeholder="Nombre, email, expediente…" value="{{ q }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-0">Nacimiento desde</label>
+        <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ fecha_desde }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-0">hasta</label>
+        <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ fecha_hasta }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small mb-0">Saldo mín €</label>
+        <input type="number" name="saldo_min" class="form-control form-control-sm" step="0.01" value="{{ saldo_min }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small mb-0">máx €</label>
+        <input type="number" name="saldo_max" class="form-control form-control-sm" step="0.01" value="{{ saldo_max }}">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-success btn-sm"><i class="bi bi-search"></i> Filtrar</button>
+        <a href="{{ url_for('alumnos.list_alumnos') }}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-success">
+        <tr>
+          <th>Expediente</th><th>Nombre</th><th>Email</th>
+          <th class="text-end">Saldo</th><th class="text-center">Matrículas</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in alumnos %}
+        <tr>
+          <td><code>{{ a.numero_expediente }}</code></td>
+          <td><strong>{{ a.apellido }}</strong>, {{ a.nombre }}</td>
+          <td><small>{{ a.email }}</small></td>
+          <td class="text-end">
+            <span class="fw-semibold {{ 'text-success' if a.saldo and a.saldo > 200 else 'text-danger' }}">
+              {{ "%.2f €" | format(a.saldo) if a.saldo is not none else '—' }}
+            </span>
+          </td>
+          <td class="text-center"><span class="badge bg-info text-dark">{{ a.num_matriculas }}</span></td>
+          <td>
+            <a href="{{ url_for('alumnos.detail_alumno', alumno_id=a.id) }}" class="btn btn-sm btn-outline-success">Ver</a>
+            <a href="{{ url_for('alumnos.editar_alumno', alumno_id=a.id) }}" class="btn btn-sm btn-outline-warning">Editar</a>
+            <button class="btn btn-sm btn-outline-danger"
+                    onclick="confirmarBorrar('{{ url_for('alumnos.borrar_alumno', alumno_id=a.id) }}', '{{ a.nombre }} {{ a.apellido }}')">
+              Borrar
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted">Sin resultados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ pagination(page, total_pages, total) }}
+
+<form id="formBorrar" method="POST" style="display:none"></form>
+<div class="modal fade" id="modalBorrar" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content">
+    <div class="modal-header bg-danger text-white"><h6 class="modal-title">Confirmar eliminación</h6></div>
+    <div class="modal-body">¿Eliminar a <strong id="nombreBorrar"></strong>?</div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-danger btn-sm" onclick="document.getElementById('formBorrar').submit()">Eliminar</button>
+    </div>
+  </div></div>
+</div>
+<script>
+function confirmarBorrar(url, nombre) {
+  document.getElementById('formBorrar').action = url;
+  document.getElementById('nombreBorrar').textContent = nombre;
+  new bootstrap.Modal(document.getElementById('modalBorrar')).show();
+}
+</script>
+{% endblock %}

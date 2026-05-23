@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Inicio — MVC labo2{% endblock %}
+{% block content %}
+  <h1>Laboratorio 2 — MVC</h1>
+  <p>Listados desde PostgreSQL. Elige un recurso:</p>
+  <ul class="list">
+    <li><a href="{{ url_for('vendors.list_') }}">Vendors</a></li>
+    <li><a href="{{ url_for('parts.list_') }}">Parts</a></li>
+  </ul>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if asignatura else 'Nueva' }} Asignatura — UCJC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="bi bi-book"></i> {{ 'Editar asignatura' if asignatura else 'Nueva asignatura' }}</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Nombre *</label>
+              <input type="text" name="nombre" class="form-control" required
+                     value="{{ asignatura.nombre if asignatura else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Código *</label>
+              <input type="text" name="codigo" class="form-control" required
+                     value="{{ asignatura.codigo if asignatura else '' }}" placeholder="INF101">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Créditos *</label>
+              <select name="creditos" class="form-select" required>
+                {% for c in [3, 4, 6] %}
+                <option value="{{ c }}" {{ 'selected' if asignatura and asignatura.creditos == c }}>{{ c }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Precio (€)</label>
+              <input type="number" name="precio" class="form-control" step="0.01" min="0"
+                     value="{{ asignatura.precio if asignatura else '150.00' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Límite de alumnos</label>
+              <input type="number" name="limite_alumnos" class="form-control" min="1"
+                     value="{{ asignatura.limite_alumnos if asignatura else '30' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Profesor responsable</label>
+              <select name="profesor_id" class="form-select">
+                <option value="">— Sin asignar —</option>
+                {% for p in profesores %}
+                <option value="{{ p.id }}"
+                  {{ 'selected' if asignatura and asignatura.profesor_id == p.id }}>
+                  {{ p.nombre }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-warning"><i class="bi bi-save"></i> Guardar</button>
+            <a href="{{ url_for('asignaturas.list_asignaturas') }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

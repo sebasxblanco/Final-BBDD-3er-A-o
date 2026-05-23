@@ -1,0 +1,128 @@
+version: '3.8'
+
+# ─── Variables comunes para todos los servicios Airflow ───────────────────────
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.9.1
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow123@postgres_airflow/airflow
+    AIRFLOW__CORE__FERNET_KEY: 'ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg='
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+    AIRFLOW__WEBSERVER__SECRET_KEY: 'secret_key_tema10_ucjc'
+    # Conexión al PostgreSQL académico (disponible en los DAGs)
+    AIRFLOW_CONN_POSTGRES_ACADEMICO: 'postgresql://academico:academico123@postgres_academico:5432/academico_db'
+    # Paquetes extra que instala Airflow al arrancar
+    _PIP_ADDITIONAL_REQUIREMENTS: 'psycopg2-binary faker werkzeug'
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./sqlite_data:/opt/airflow/sqlite_data
+    - airflow_logs:/opt/airflow/logs
+  depends_on:
+    postgres_airflow:
+      condition: service_healthy
+    postgres_academico:
+      condition: service_healthy
+
+services:
+
+  # ── PostgreSQL para metadatos de Airflow ─────────────────────────────────────
+  postgres_airflow:
+    image: postgres:15
+    container_name: pg_airflow
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow123
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_airflow_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── PostgreSQL para datos académicos ─────────────────────────────────────────
+  postgres_academico:
+    image: postgis/postgis:15-3.4
+    container_name: pg_academico
+    environment:
+      POSTGRES_USER: academico
+      POSTGRES_PASSWORD: academico123
+      POSTGRES_DB: academico_db
+    volumes:
+      - postgres_academico_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"          # accesible desde host en puerto 5433
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "academico"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Inicialización de Airflow (crea BD + usuario admin) ───────────────────────
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow_init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        pip install psycopg2-binary faker werkzeug --quiet
+        airflow db migrate
+        airflow users create \
+          --username admin \
+          --firstname Admin \
+          --lastname UCJC \
+          --role Admin \
+          --email admin@ucjc.edu \
+          --password admin123
+    restart: on-failure
+
+  # ── Servidor web de Airflow ───────────────────────────────────────────────────
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow_webserver
+    command: webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      - airflow-init
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ── Scheduler de Airflow ──────────────────────────────────────────────────────
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow_scheduler
+    command: scheduler
+    depends_on:
+      - airflow-init
+
+  # ── Aplicación Flask MVC ──────────────────────────────────────────────────────
+  flask-mvc:
+    build: ./mvc_app
+    container_name: flask_mvc
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./sqlite_data:/app/sqlite_data
+    environment:
+      POSTGRES_HOST: postgres_academico
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: academico_db
+      POSTGRES_USER: academico
+      POSTGRES_PASSWORD: academico123
+      SQLITE_PATH: /app/sqlite_data/auth.db
+      SECRET_KEY: 'flask_secret_tema10_ucjc'
+    depends_on:
+      postgres_academico:
+        condition: service_healthy
+
+volumes:
+  postgres_airflow_data:
+  postgres_academico_data:
+  airflow_logs:

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Prof. {{ profesor.nombre }} {{ profesor.apellido }} — UCJC{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('profesores.list_profesores') }}" class="btn btn-outline-secondary mb-3">
+  <i class="bi bi-arrow-left"></i> Volver
+</a>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-primary text-white">
+    <h4 class="mb-0">
+      <i class="bi bi-person-badge"></i>
+      {{ profesor.nombre }} {{ profesor.apellido }}
+    </h4>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <p><strong>Email:</strong> {{ profesor.email }}</p>
+        <p><strong>Departamento:</strong>
+          <span class="badge bg-secondary fs-6">{{ profesor.departamento }}</span>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <p><strong>Fecha de contratación:</strong> {{ profesor.fecha_contratacion }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5 class="mb-3">Asignaturas impartidas</h5>
+<div class="table-responsive">
+  <table class="table table-bordered align-middle">
+    <thead class="table-light">
+      <tr><th>Código</th><th>Nombre</th><th>Créditos</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for a in asignaturas %}
+      <tr>
+        <td><code>{{ a.codigo }}</code></td>
+        <td>{{ a.nombre }}</td>
+        <td>{{ a.creditos }}</td>
+        <td>
+          <a href="{{ url_for('asignaturas.detail_asignatura', asig_id=a.id) }}"
+             class="btn btn-sm btn-outline-warning">Ver asignatura</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-muted text-center">Sin asignaturas asignadas</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

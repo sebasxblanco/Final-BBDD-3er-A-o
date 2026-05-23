@@ -1,0 +1,102 @@
+{% from 'macros.html' import pagination %}
+{% extends 'base.html' %}
+{% block title %}Profesores — UCJC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-person-badge"></i> Profesores</h2>
+  <a href="{{ url_for('profesores.crear_profesor') }}" class="btn btn-success">
+    <i class="bi bi-plus-lg"></i> Nuevo profesor
+  </a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-3 border-0 bg-light">
+  <div class="card-body py-2">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <input type="text" name="q" class="form-control form-control-sm"
+               placeholder="Nombre, apellido, email…" value="{{ q }}">
+      </div>
+      <div class="col-md-2">
+        <input type="text" name="dpto" class="form-control form-control-sm"
+               placeholder="Departamento" value="{{ dpto }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-0">Contrat. desde</label>
+        <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ fecha_desde }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-0">hasta</label>
+        <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ fecha_hasta }}">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filtrar</button>
+        <a href="{{ url_for('profesores.list_profesores') }}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-primary">
+        <tr>
+          <th>#</th><th>Nombre</th><th>Email</th><th>Departamento</th>
+          <th>Contratación</th><th class="text-center">Asignaturas</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in profesores %}
+        <tr>
+          <td class="text-muted">{{ p.id }}</td>
+          <td><strong>{{ p.apellido }}</strong>, {{ p.nombre }}</td>
+          <td><small>{{ p.email }}</small></td>
+          <td><span class="badge bg-secondary">{{ p.departamento }}</span></td>
+          <td>{{ p.fecha_contratacion }}</td>
+          <td class="text-center"><span class="badge bg-info text-dark">{{ p.num_asignaturas }}</span></td>
+          <td>
+            <a href="{{ url_for('profesores.detail_profesor', prof_id=p.id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+            <a href="{{ url_for('profesores.editar_profesor', prof_id=p.id) }}" class="btn btn-sm btn-outline-warning">Editar</a>
+            <button class="btn btn-sm btn-outline-danger"
+                    onclick="confirmarBorrar('{{ url_for('profesores.borrar_profesor', prof_id=p.id) }}', '{{ p.nombre }} {{ p.apellido }}')">
+              Borrar
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">Sin resultados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ pagination(page, total_pages, total) }}
+
+<!-- Modal confirmación borrado -->
+<form id="formBorrar" method="POST" style="display:none"></form>
+<div class="modal fade" id="modalBorrar" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h6 class="modal-title">Confirmar eliminación</h6>
+      </div>
+      <div class="modal-body">
+        ¿Eliminar a <strong id="nombreBorrar"></strong>?
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-danger btn-sm" onclick="document.getElementById('formBorrar').submit()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function confirmarBorrar(url, nombre) {
+  document.getElementById('formBorrar').action = url;
+  document.getElementById('nombreBorrar').textContent = nombre;
+  new bootstrap.Modal(document.getElementById('modalBorrar')).show();
+}
+</script>
+{% endblock %}

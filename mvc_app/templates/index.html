@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — UCJC Académico{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="bi bi-house-fill"></i> Dashboard</h2>
+  <span class="text-muted small">Datos generados por DAGs de Airflow</span>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-3 col-sm-6">
+    <a href="{{ url_for('profesores.list_profesores') }}" class="text-decoration-none">
+      <div class="card text-white bg-primary h-100 shadow-sm">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-person-badge" style="font-size:3rem;"></i>
+          <h4 class="mt-2 mb-0">Profesores</h4>
+          <p class="mb-0 opacity-75">10 registros</p>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <a href="{{ url_for('alumnos.list_alumnos') }}" class="text-decoration-none">
+      <div class="card text-white bg-success h-100 shadow-sm">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-people" style="font-size:3rem;"></i>
+          <h4 class="mt-2 mb-0">Alumnos</h4>
+          <p class="mb-0 opacity-75">100 registros</p>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <a href="{{ url_for('asignaturas.list_asignaturas') }}" class="text-decoration-none">
+      <div class="card text-white bg-warning h-100 shadow-sm">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-book" style="font-size:3rem;"></i>
+          <h4 class="mt-2 mb-0">Asignaturas</h4>
+          <p class="mb-0 opacity-75">20 registros</p>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <a href="{{ url_for('matriculas.list_matriculas') }}" class="text-decoration-none">
+      <div class="card text-white bg-danger h-100 shadow-sm">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-card-list" style="font-size:3rem;"></i>
+          <h4 class="mt-2 mb-0">Matrículas</h4>
+          <p class="mb-0 opacity-75">200 registros</p>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="card border-0 bg-light">
+  <div class="card-body">
+    <h6 class="text-muted mb-2"><i class="bi bi-info-circle"></i> Arquitectura del sistema</h6>
+    <div class="row text-center g-2">
+      <div class="col">
+        <span class="badge bg-secondary fs-6 w-100">Airflow DAGs</span>
+        <div class="small text-muted mt-1">Origen de todos los datos</div>
+      </div>
+      <div class="col-auto d-flex align-items-center"><i class="bi bi-arrow-right"></i></div>
+      <div class="col">
+        <span class="badge bg-primary fs-6 w-100">PostgreSQL</span>
+        <div class="small text-muted mt-1">Datos académicos</div>
+      </div>
+      <div class="col-auto d-flex align-items-center">+</div>
+      <div class="col">
+        <span class="badge bg-dark fs-6 w-100">SQLite</span>
+        <div class="small text-muted mt-1">Autenticación</div>
+      </div>
+      <div class="col-auto d-flex align-items-center"><i class="bi bi-arrow-right"></i></div>
+      <div class="col">
+        <span class="badge bg-success fs-6 w-100">Flask MVC</span>
+        <div class="small text-muted mt-1">Esta aplicación</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

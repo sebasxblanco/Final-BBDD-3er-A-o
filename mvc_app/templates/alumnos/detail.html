@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}{{ alumno.nombre }} {{ alumno.apellido }} — UCJC{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-3">
+  <a href="{{ url_for('alumnos.list_alumnos') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> Volver
+  </a>
+  <a href="{{ url_for('alumnos.editar_alumno', alumno_id=alumno.id) }}" class="btn btn-warning btn-sm">
+    <i class="bi bi-pencil"></i> Editar
+  </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-success text-white d-flex justify-content-between">
+    <h4 class="mb-0"><i class="bi bi-person"></i> {{ alumno.nombre }} {{ alumno.apellido }}</h4>
+    <span class="fs-5 fw-bold">
+      💰 {{ "%.2f €" | format(alumno.saldo) if alumno.saldo is not none else '—' }}
+    </span>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <p><strong>Nº Expediente:</strong> <code>{{ alumno.numero_expediente }}</code></p>
+        <p><strong>Email:</strong> {{ alumno.email }}</p>
+      </div>
+      <div class="col-md-6">
+        <p><strong>Fecha de nacimiento:</strong> {{ alumno.fecha_nacimiento }}</p>
+        <p><strong>Saldo disponible:</strong>
+          <span class="badge fs-6 {{ 'bg-success' if alumno.saldo and alumno.saldo > 200 else 'bg-danger' }}">
+            {{ "%.2f €" | format(alumno.saldo) if alumno.saldo is not none else '—' }}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5 class="mb-3">Matrículas ({{ matriculas | length }})</h5>
+<div class="table-responsive">
+  <table class="table table-bordered align-middle">
+    <thead class="table-light">
+      <tr><th>Asignatura</th><th>Créditos</th><th class="text-end">Precio</th><th>Fecha</th><th>Calificación</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for m in matriculas %}
+      <tr>
+        <td>{{ m.asignatura }}</td>
+        <td>{{ m.creditos }}</td>
+        <td class="text-end">{{ "%.2f €" | format(m.precio) if m.precio is not none else '—' }}</td>
+        <td>{{ m.fecha_matricula }}</td>
+        <td>
+          {% if m.calificacion is not none %}
+            <span class="badge {{ 'bg-success' if m.calificacion >= 5 else 'bg-danger' }}">
+              {{ "%.2f" | format(m.calificacion) }}
+            </span>
+          {% else %}<span class="text-muted">Pendiente</span>{% endif %}
+        </td>
+        <td>
+          <form method="POST" action="{{ url_for('matriculas.cancelar_matricula', mat_id=m.id) }}"
+                onsubmit="return confirm('¿Cancelar matrícula y reembolsar {{ '%.2f €' | format(m.precio) if m.precio else '' }}?')">
+            <button class="btn btn-sm btn-outline-danger">Cancelar</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-muted text-center">Sin matrículas</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

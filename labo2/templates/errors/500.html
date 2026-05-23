@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Error — MVC labo2{% endblock %}
+{% block content %}
+  <h1>Error del servidor</h1>
+  <p>Algo ha fallado. Intenta más tarde.</p>
+  <p><a href="{{ url_for('main.index') }}">Volver al inicio</a></p>
+{% endblock %}

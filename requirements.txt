@@ -1,0 +1,5 @@
+# Laboratorio 2 (actualizado) — dependencias
+# Recomendado: Python 3.11+ (ideal 3.12)
+
+psycopg[binary,pool]==3.2.1
+Faker==22.6.0

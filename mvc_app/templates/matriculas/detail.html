@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Matrícula #{{ matricula.id }} — UCJC{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('matriculas.list_matriculas') }}" class="btn btn-outline-secondary mb-3">
+  <i class="bi bi-arrow-left"></i> Volver
+</a>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-danger text-white">
+    <h4 class="mb-0"><i class="bi bi-card-list"></i> Matrícula #{{ matricula.id }}</h4>
+  </div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <h6 class="text-muted text-uppercase small mb-2">Alumno</h6>
+        <p class="mb-1"><strong>{{ matricula.alumno }}</strong></p>
+        <p class="mb-1"><code>{{ matricula.numero_expediente }}</code></p>
+        <p class="mb-0 text-muted small">{{ matricula.alumno_email }}</p>
+      </div>
+      <div class="col-md-6">
+        <h6 class="text-muted text-uppercase small mb-2">Asignatura</h6>
+        <p class="mb-1"><strong>{{ matricula.asignatura }}</strong></p>
+        <p class="mb-1">Código: <code>{{ matricula.codigo }}</code> · {{ matricula.creditos }} créditos</p>
+        <p class="mb-0 text-muted small">Profesor: {{ matricula.profesor }}</p>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-md-6">
+        <p><strong>Fecha de matrícula:</strong> {{ matricula.fecha_matricula }}</p>
+      </div>
+      <div class="col-md-6">
+        <strong>Calificación:</strong>
+        {% if matricula.calificacion is not none %}
+          <span class="badge fs-5 {{ 'bg-success' if matricula.calificacion >= 5 else 'bg-danger' }}">
+            {{ "%.2f" | format(matricula.calificacion) }}
+          </span>
+          {% if matricula.calificacion >= 5 %}
+            <span class="text-success ms-2"><i class="bi bi-check-circle"></i> Aprobado</span>
+          {% else %}
+            <span class="text-danger ms-2"><i class="bi bi-x-circle"></i> Suspendido</span>
+          {% endif %}
+        {% else %}
+          <span class="text-muted">Pendiente de calificación</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

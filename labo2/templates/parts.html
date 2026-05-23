@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Parts — MVC labo2{% endblock %}
+{% block content %}
+  <h1>Parts</h1>
+  <ul class="list">
+    {% for part in parts %}
+    <li>
+      {% if part.id in parts_with_drawing %}
+      <img class="thumb" src="{{ url_for('parts.drawing', part_id=part.id) }}" alt="" width="40" height="40">
+      <a href="{{ url_for('parts.drawing', part_id=part.id) }}">Ver dibujo</a>
+      {% endif %}
+      <span>{{ part.id }} — {{ part.name }}</span>
+    </li>
+    {% else %}
+    <li class="empty">No hay parts.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

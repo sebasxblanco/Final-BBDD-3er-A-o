@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if alumno else 'Nuevo' }} Alumno — UCJC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-person"></i> {{ 'Editar alumno' if alumno else 'Nuevo alumno' }}</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre *</label>
+              <input type="text" name="nombre" class="form-control" required
+                     value="{{ alumno.nombre if alumno else '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Apellido *</label>
+              <input type="text" name="apellido" class="form-control" required
+                     value="{{ alumno.apellido if alumno else '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Email *</label>
+              <input type="email" name="email" class="form-control" required
+                     value="{{ alumno.email if alumno else '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Nº Expediente *</label>
+              <input type="text" name="numero_expediente" class="form-control" required
+                     value="{{ alumno.numero_expediente if alumno else '' }}" placeholder="UCJC-2024-0001">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fecha de nacimiento</label>
+              <input type="date" name="fecha_nacimiento" class="form-control"
+                     value="{{ alumno.fecha_nacimiento if alumno else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Saldo (€)</label>
+              <input type="number" name="saldo" class="form-control" step="0.01" min="0"
+                     value="{{ alumno.saldo if alumno else '1000.00' }}">
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+            <a href="{{ url_for('alumnos.list_alumnos') }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

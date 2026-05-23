@@ -1,0 +1,84 @@
+{% from 'macros.html' import pagination %}
+{% extends 'base.html' %}
+{% block title %}Matrículas — UCJC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-card-list"></i> Matrículas</h2>
+  <a href="{{ url_for('matriculas.nueva_matricula') }}" class="btn btn-success">
+    <i class="bi bi-plus-lg"></i> Nueva matrícula
+  </a>
+</div>
+
+<div class="card mb-3 border-0 bg-light">
+  <div class="card-body py-2">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <input type="text" name="q" class="form-control form-control-sm"
+               placeholder="Alumno, asignatura, código…" value="{{ q }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-0">Fecha desde</label>
+        <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ fecha_desde }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-0">hasta</label>
+        <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ fecha_hasta }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small mb-0">Cal. mín</label>
+        <input type="number" name="cal_min" class="form-control form-control-sm" step="0.01" min="0" max="10" value="{{ cal_min }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small mb-0">máx</label>
+        <input type="number" name="cal_max" class="form-control form-control-sm" step="0.01" min="0" max="10" value="{{ cal_max }}">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-danger btn-sm"><i class="bi bi-search"></i> Filtrar</button>
+        <a href="{{ url_for('matriculas.list_matriculas') }}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-danger">
+        <tr>
+          <th>#</th><th>Alumno</th><th>Asignatura</th>
+          <th class="text-end">Precio</th><th>Fecha</th><th class="text-center">Calificación</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matriculas %}
+        <tr>
+          <td class="text-muted">{{ m.id }}</td>
+          <td>{{ m.alumno }}<br><small class="text-muted"><code>{{ m.numero_expediente }}</code></small></td>
+          <td><code>{{ m.codigo }}</code> {{ m.asignatura }}</td>
+          <td class="text-end">{{ "%.2f €" | format(m.precio) if m.precio is not none else '—' }}</td>
+          <td>{{ m.fecha_matricula }}</td>
+          <td class="text-center">
+            {% if m.calificacion is not none %}
+              <span class="badge {{ 'bg-success' if m.calificacion >= 5 else 'bg-danger' }}">
+                {{ "%.2f" | format(m.calificacion) }}
+              </span>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('matriculas.detail_matricula', mat_id=m.id) }}" class="btn btn-sm btn-outline-danger">Ver</a>
+            <form method="POST" action="{{ url_for('matriculas.cancelar_matricula', mat_id=m.id) }}" style="display:inline"
+                  onsubmit="return confirm('¿Cancelar y reembolsar {{ '%.2f €' | format(m.precio) if m.precio else '' }}?')">
+              <button class="btn btn-sm btn-outline-secondary">Cancelar</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted">Sin resultados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ pagination(page, total_pages, total) }}
+{% endblock %}
