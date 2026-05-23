@@ -108,7 +108,7 @@ Credenciales disponibles:
 | profesor1 | prof123 | profesor |
 | alumno1 | alum123 | alumno |
 
-**5. Verificar los datos desde terminal (opcional)**
+**5. Verificar los datos desde terminal**
 
 ```bash
 docker exec -it pg_academico psql -U academico -d academico_db -c \
@@ -143,10 +143,10 @@ docker compose down -v
 tema10/
 ├── docker-compose.yml
 ├── dags/
-│   ├── dag_academico.py       -- esquema base y datos iniciales
-│   ├── dag_usuarios.py        -- usuarios SQLite con contraseñas cifradas
-│   ├── dag_extensiones.py     -- extensiones, auditoría, vista, índices, multiidioma
-│   └── dag_postgis.py         -- PostGIS, geometrías y función viajar()
+│   ├── dag_academico.py       
+│   ├── dag_usuarios.py        
+│   ├── dag_extensiones.py     
+│   └── dag_postgis.py         
 ├── sql/
 │   ├── indices.sql
 │   ├── vista_academica.sql
