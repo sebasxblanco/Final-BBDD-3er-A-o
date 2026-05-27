@@ -69,8 +69,8 @@ No se requiere Python, PostgreSQL ni ninguna otra herramienta instalada localmen
 **1. Clonar el repositorio**
 
 ```bash
-git clone https://github.com/sebasxblanco/Final-BBDD-3er-A-o.git
-cd Final-BBDD-3er-A-o
+git clone https://github.com/sebasxblanco/BBDD_sistema_academico.git
+cd BBDD_sistema_academico.git
 ```
 
 **2. Levantar todos los contenedores**
